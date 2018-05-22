@@ -1,80 +1,65 @@
-// 'use babel'
-
-
 const registry = new Map()
 
 
-class Transactions {
-    static register(forward, backward, name=null) {
-        if (!name) {
-            name = forward.name || forward.toString()
-        }
-        registry.set(forward, {inverse: backward, name})
-        console.log(name)
-    }
+export const register = (up, down, {bidirectional=false, name=null}={}) => {
+    registry.set(up, {
+        inverse: down,
+        name: name || `${up.name}-${down.name}`,
+    })
 
-    static async transaction(...operations) {
-        for (const operation of operations) {
-            if (!registry.has(operation)) {
-                const i = operations.indexOf(operation) + 1
-                throw new Error(
-                    `Could not find inverse for ${i}th operation. `
-                    + `Code: ${operation}`
-                )
-            }
-        }
-
-        const completedOperations = []
-        for (const operation of operations) {
-            try {
-                await operation()
-                completedOperations.push(operation)
-            }
-            catch (error) {
-                console.log('rolling back because', error.message)
-                completedOperations.reverse().forEach(operation =>
-                    // Errors during rollback are fatal!
-                    this.invert(operation)
-                )
-                break
-            }
-        }
-    }
-
-    static invert(operation) {
-        registry.get(operation).inverse()
+    if (bidirectional) {
+        registry.set(down, {
+            inverse: up,
+            name: `${name || `${down.name}-${up.name}`}Inverse`,
+        })
     }
 }
 
-
-module.exports = Transactions
-
-
-const state = {
-    a: 1,
-    b: 2,
-}
-const operation1 = () => {
-    state.a += 1
-}
-const operation1Inverse = () => {
-    state.a -= 1
-}
-const operation2 = () => {
-    throw new Error('some reason')
-    state.b += 5
-}
-const operation2Inverse = () => {
-    state.b -= 5
+export const clearRegistry = () => {
+    registry.clear()
 }
 
-Transactions.register(operation1, operation1Inverse)
-Transactions.register(operation2, operation2Inverse)
+export const transaction = async (...tasks) => {
+    for (const task of tasks) {
+        if (!registry.has(task)) {
+            const i = tasks.indexOf(task) + 1
+            throw new Error(
+                `Could not find inverse for ${i}. task. `
+                + `Code: ${task}`
+            )
+        }
+    }
+
+    const completedOperations = []
+    for (const task of tasks) {
+        try {
+            await task()
+            completedOperations.push(task)
+        }
+        catch (error) {
+            console.debug('rolling back because:', error.message)
+            const inverses = (
+                completedOperations
+                .map(task => registry.get(task).inverse)
+                .reverse()
+            )
+            for (const inverse of inverses) {
+                await inverse()
+            }
+            break
+        }
+    }
+    return async () => {
+        const inverses = (
+            tasks
+            .map(task => registry.get(task).inverse)
+            .reverse()
+        )
+        for (const inverse of inverses) {
+            await inverse()
+        }
+    }
+}
 
 
-Transactions.transaction(
-    operation1,
-    operation2,
-).then(() => {
-    console.log(state)
-})
+export default transaction

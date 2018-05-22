@@ -9,6 +9,8 @@
     "scripts": {
         "prepublish": "npm run transpile",
         "release": "release-it",
+        "test": "jest",
+        "coverage": "jest --coverage",
         "transpile": "babel -d lib/ src/"
     },
     "devDependencies": {
@@ -16,6 +18,9 @@
         "babel-core": "^6.26.3",
         "babel-preset-env": "^1.7.0",
         "babel-preset-stage-0": "^6.24.1",
+        "jest": "^22.4.4",
         "release-it": "^7.4.5"
-    }
+    },
+    "dependencies": {},
+    "peerDependencies": {}
 }
