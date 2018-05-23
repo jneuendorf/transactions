@@ -1,6 +1,6 @@
 {
     "name": "transactions",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "A registry of atomic operations and their inverse functions. They can be run as a transaction.",
     "main": "lib/transactions.js",
     "repository": "https://github.com/jneuendorf/transactor.git",
