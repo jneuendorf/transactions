@@ -37,14 +37,17 @@ describe('transactions', () => {
     })
 
     test('tasks w/ errors (automatic rollback)', async () => {
+        const errorMessage = 'Some error.'
         createPropB = () => {
-            throw new Error('Some error.')
+            throw new Error(errorMessage)
         }
         register(createPropB, deletePropB)
-        await transaction(
+        const reason = await transaction(
             incrementA,
             createPropB,
         )
+        expect(reason).toBeInstanceOf(Error)
+        expect(reason.message).toBe(errorMessage)
         expect(state).toEqual(initialState)
     })
 
@@ -53,6 +56,7 @@ describe('transactions', () => {
             incrementA,
             createPropB,
         )
+        expect(rollback).toBeInstanceOf(Function)
         await rollback()
         expect(state).toEqual(initialState)
     })

@@ -30,23 +30,23 @@ export const transaction = async (...tasks) => {
         }
     }
 
-    const completedOperations = []
+    const completedTasks = []
     for (const task of tasks) {
         try {
             await task()
-            completedOperations.push(task)
+            completedTasks.push(task)
         }
         catch (error) {
             console.debug('rolling back because:', error.message)
             const inverses = (
-                completedOperations
+                completedTasks
                 .map(task => registry.get(task).inverse)
                 .reverse()
             )
             for (const inverse of inverses) {
                 await inverse()
             }
-            break
+            return error
         }
     }
     return async () => {

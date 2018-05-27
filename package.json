@@ -13,6 +13,7 @@
         "coverage": "jest --coverage",
         "transpile": "babel -d lib/ src/"
     },
+    "dependencies": {},
     "devDependencies": {
         "babel-cli": "^6.26.0",
         "babel-core": "^6.26.3",
@@ -21,6 +22,7 @@
         "jest": "^22.4.4",
         "release-it": "^7.4.5"
     },
-    "dependencies": {},
-    "peerDependencies": {}
+    "peerDependencies": {
+        "babel-polyfill": "^6.26.0"
+    }
 }
